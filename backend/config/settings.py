@@ -9,3 +9,7 @@ load_dotenv(BASE_DIR / ".env")
 MONGO_URI: str = os.getenv("MONGO_URI", "mongodb://localhost:27017")
 DATABASE_NAME: str = os.getenv("DATABASE_NAME", "local_logic")
 GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
+OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "")
+STABILITY_API_KEY: str = os.getenv("STABILITY_API_KEY", "")
+
+POSTER_STORAGE_DIR: Path = BASE_DIR / "storage" / "posters"
