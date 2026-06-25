@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pymongo.errors import PyMongoError
 
 from backend.config.database import close_database, get_client, get_database
+from backend.routes.analytics import router as analytics_router
 from backend.routes.finance import router as finance_router
 from backend.routes.inventory import router as inventory_router
 from backend.routes.products import router as products_router
@@ -57,6 +58,7 @@ app.include_router(products_router)
 app.include_router(sales_router)
 app.include_router(inventory_router)
 app.include_router(finance_router)
+app.include_router(analytics_router)
 
 
 def _database_status() -> str:
