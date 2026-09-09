@@ -1,4 +1,4 @@
-"""Reusable Gemini AI service for Local-Logic business assistant features."""
+"""Reusable Gemini AI service for BizMate business assistant features."""
 
 import json
 import logging

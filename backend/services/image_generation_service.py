@@ -124,7 +124,6 @@ class ImageGenerationService:
 
         summary = "\n".join(lines)
         logger.error(summary)
-        print(summary)
 
     def generate_image(self, request: ImageGenerationRequest) -> ImageGenerationResult:
         """Try providers in order until one succeeds."""

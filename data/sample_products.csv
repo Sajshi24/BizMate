@@ -1,0 +1,13 @@
+name,category,cost_price,selling_price,stock,minimum_stock,supplier
+Basmati Rice 5kg,Grains,180,250,45,10,Star Foods Co.
+Sunflower Oil 1L,Cooking Oil,92,130,28,8,Nature Fresh Ltd.
+Whole Wheat Flour 2kg,Flour,60,90,52,12,Annapurna Mills
+Toor Dal 1kg,Pulses,110,155,35,10,Agro Exports Pvt.
+Full Cream Milk 1L,Dairy,52,72,4,6,Amul Dairy
+Tomato Ketchup 500g,Condiments,58,85,40,8,Kissan Foods
+Sugar 1kg,Sweeteners,40,58,80,20,National Sugar Mills
+Masala Tea 250g,Beverages,90,130,18,5,Tata Consumer Products
+Chilly Powder 200g,Spices,35,55,30,8,MDH Spices
+Dish Wash Bar 3-Pack,Household,38,58,25,6,Vim Household
+Hand Sanitizer 500ml,Healthcare,65,100,2,5,Dettol
+Plain Biscuits 400g,Snacks,22,38,60,15,Parle Products

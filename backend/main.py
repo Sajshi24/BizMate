@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pymongo.errors import PyMongoError
 
 from backend.config.database import close_database, get_client, get_database
+from backend.routes.advisor import router as advisor_router
 from backend.routes.analytics import router as analytics_router
 from backend.routes.finance import router as finance_router
 from backend.routes.inventory import router as inventory_router
@@ -20,7 +21,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-APP_TITLE = "Local-Logic"
+APP_TITLE = "BizMate"
 APP_DESCRIPTION = "AI-Powered Smart Business Assistant for Local Retailers"
 APP_VERSION = "1.0.0"
 
@@ -61,6 +62,7 @@ app.include_router(inventory_router)
 app.include_router(finance_router)
 app.include_router(analytics_router)
 app.include_router(marketing_router)
+app.include_router(advisor_router)
 
 
 def _database_status() -> str:
@@ -78,7 +80,7 @@ async def root() -> dict[str, Any]:
         "description": APP_DESCRIPTION,
         "version": APP_VERSION,
         "status": "running",
-        "message": "Welcome to Local-Logic API",
+        "message": "Welcome to BizMate API",
     }
 
 

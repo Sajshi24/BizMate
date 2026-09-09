@@ -1,0 +1,11 @@
+# Sample sales data — for reference only.
+# Sales are created via the API (POST /sales) which generates product_ids at runtime.
+# Use seed.py to load sample_products.csv and then record sales through the frontend or API.
+#
+# Format reference:
+# product_name,quantity,unit_price,revenue,cost,profit,sale_date
+# Basmati Rice 5kg,3,250,750,540,210,2024-01-15
+# Sunflower Oil 1L,2,130,260,184,76,2024-01-15
+# Toor Dal 1kg,5,155,775,550,225,2024-01-16
+# Plain Biscuits 400g,10,38,380,220,160,2024-01-16
+# Sugar 1kg,4,58,232,160,72,2024-01-17
