@@ -30,8 +30,9 @@ def _calculate_profit_margin(total_profit: float, total_revenue: float) -> float
     return round((total_profit / total_revenue) * 100, 2)
 
 
-def _aggregate_finance_metrics() -> FinanceMetrics:
+def _aggregate_finance_metrics(user_id: str) -> FinanceMetrics:
     pipeline = [
+        {"$match": {"user_id": user_id}},
         {
             "$group": {
                 "_id": None,
@@ -40,13 +41,13 @@ def _aggregate_finance_metrics() -> FinanceMetrics:
                 "total_profit": {"$sum": "$profit"},
                 "total_sales": {"$sum": 1},
             }
-        }
+        },
     ]
 
     try:
         results = list(_get_collection().aggregate(pipeline))
     except PyMongoError as exc:
-        logger.error("Failed to aggregate finance metrics: %s", exc)
+        logger.error("Failed to aggregate finance metrics for user %s: %s", user_id, exc)
         raise
 
     if not results:
@@ -71,17 +72,17 @@ def _aggregate_finance_metrics() -> FinanceMetrics:
     )
 
 
-def get_finance_summary() -> FinanceMetrics:
-    return _aggregate_finance_metrics()
+def get_finance_summary(user_id: str) -> FinanceMetrics:
+    return _aggregate_finance_metrics(user_id)
 
 
-def get_total_revenue() -> float:
-    return _aggregate_finance_metrics().total_revenue
+def get_total_revenue(user_id: str) -> float:
+    return _aggregate_finance_metrics(user_id).total_revenue
 
 
-def get_profit_metrics() -> FinanceMetrics:
-    return _aggregate_finance_metrics()
+def get_profit_metrics(user_id: str) -> FinanceMetrics:
+    return _aggregate_finance_metrics(user_id)
 
 
-def get_finance_dashboard() -> FinanceMetrics:
-    return _aggregate_finance_metrics()
+def get_finance_dashboard(user_id: str) -> FinanceMetrics:
+    return _aggregate_finance_metrics(user_id)

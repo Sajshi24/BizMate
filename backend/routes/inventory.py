@@ -1,10 +1,12 @@
 import logging
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field
 from pymongo.errors import PyMongoError
 
 from backend.models.product_model import ProductResponse
+from backend.models.user_model import UserResponse
+from backend.routes.deps import get_current_user
 from backend.services import inventory_service
 
 logger = logging.getLogger(__name__)
@@ -30,11 +32,13 @@ class InventoryHealthResponse(BaseModel):
 @router.get(
     "",
     response_model=list[ProductResponse],
-    summary="Get full inventory",
+    summary="Get full inventory for the authenticated user",
 )
-def get_inventory() -> list[ProductResponse]:
+def get_inventory(
+    current_user: UserResponse = Depends(get_current_user),
+) -> list[ProductResponse]:
     try:
-        return inventory_service.get_inventory()
+        return inventory_service.get_inventory(current_user.user_id)
     except PyMongoError as exc:
         logger.error("Database error while fetching inventory: %s", exc)
         raise HTTPException(
@@ -46,11 +50,13 @@ def get_inventory() -> list[ProductResponse]:
 @router.get(
     "/low-stock",
     response_model=list[ProductResponse],
-    summary="Get low-stock products",
+    summary="Get low-stock products for the authenticated user",
 )
-def get_low_stock_products() -> list[ProductResponse]:
+def get_low_stock_products(
+    current_user: UserResponse = Depends(get_current_user),
+) -> list[ProductResponse]:
     try:
-        return inventory_service.get_low_stock_products()
+        return inventory_service.get_low_stock_products(current_user.user_id)
     except PyMongoError as exc:
         logger.error("Database error while fetching low-stock products: %s", exc)
         raise HTTPException(
@@ -62,11 +68,13 @@ def get_low_stock_products() -> list[ProductResponse]:
 @router.get(
     "/out-of-stock",
     response_model=list[ProductResponse],
-    summary="Get out-of-stock products",
+    summary="Get out-of-stock products for the authenticated user",
 )
-def get_out_of_stock_products() -> list[ProductResponse]:
+def get_out_of_stock_products(
+    current_user: UserResponse = Depends(get_current_user),
+) -> list[ProductResponse]:
     try:
-        return inventory_service.get_out_of_stock_products()
+        return inventory_service.get_out_of_stock_products(current_user.user_id)
     except PyMongoError as exc:
         logger.error("Database error while fetching out-of-stock products: %s", exc)
         raise HTTPException(
@@ -78,11 +86,13 @@ def get_out_of_stock_products() -> list[ProductResponse]:
 @router.get(
     "/restock-suggestions",
     response_model=list[RestockSuggestionResponse],
-    summary="Get restock suggestions",
+    summary="Get restock suggestions for the authenticated user",
 )
-def get_restock_suggestions() -> list[RestockSuggestionResponse]:
+def get_restock_suggestions(
+    current_user: UserResponse = Depends(get_current_user),
+) -> list[RestockSuggestionResponse]:
     try:
-        suggestions = inventory_service.get_restock_suggestions()
+        suggestions = inventory_service.get_restock_suggestions(current_user.user_id)
         return [
             RestockSuggestionResponse(
                 product_name=suggestion.product_name,
@@ -103,11 +113,13 @@ def get_restock_suggestions() -> list[RestockSuggestionResponse]:
 @router.get(
     "/health",
     response_model=InventoryHealthResponse,
-    summary="Get inventory health metrics",
+    summary="Get inventory health metrics for the authenticated user",
 )
-def get_inventory_health() -> InventoryHealthResponse:
+def get_inventory_health(
+    current_user: UserResponse = Depends(get_current_user),
+) -> InventoryHealthResponse:
     try:
-        health = inventory_service.get_inventory_health()
+        health = inventory_service.get_inventory_health(current_user.user_id)
         return InventoryHealthResponse(
             total_products=health.total_products,
             healthy_products=health.healthy_products,

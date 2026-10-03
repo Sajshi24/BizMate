@@ -15,6 +15,7 @@ class ProductBase(BaseModel):
 
 class ProductCreate(ProductBase):
     """Payload for creating a new product."""
+    user_id: str | None = None
 
 
 class ProductUpdate(BaseModel):
@@ -29,6 +30,7 @@ class ProductUpdate(BaseModel):
 
 class ProductResponse(ProductBase):
     product_id: str
+    user_id: str | None = None
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)

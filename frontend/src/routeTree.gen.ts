@@ -14,7 +14,9 @@ import { Route as AdvisorRouteImport } from './routes/advisor'
 import { Route as AnalyticsRouteImport } from './routes/analytics'
 import { Route as FinanceRouteImport } from './routes/finance'
 import { Route as InventoryRouteImport } from './routes/inventory'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as MarketingRouteImport } from './routes/marketing'
+import { Route as RegisterRouteImport } from './routes/register'
 import { Route as SalesRouteImport } from './routes/sales'
 import { Route as SettingsRouteImport } from './routes/settings'
 
@@ -43,9 +45,19 @@ const InventoryRoute = InventoryRouteImport.update({
   path: '/inventory',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MarketingRoute = MarketingRouteImport.update({
   id: '/marketing',
   path: '/marketing',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RegisterRoute = RegisterRouteImport.update({
+  id: '/register',
+  path: '/register',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SalesRoute = SalesRouteImport.update({
@@ -65,7 +77,9 @@ export interface FileRoutesByFullPath {
   '/analytics': typeof AnalyticsRoute
   '/finance': typeof FinanceRoute
   '/inventory': typeof InventoryRoute
+  '/login': typeof LoginRoute
   '/marketing': typeof MarketingRoute
+  '/register': typeof RegisterRoute
   '/sales': typeof SalesRoute
   '/settings': typeof SettingsRoute
 }
@@ -75,7 +89,9 @@ export interface FileRoutesByTo {
   '/analytics': typeof AnalyticsRoute
   '/finance': typeof FinanceRoute
   '/inventory': typeof InventoryRoute
+  '/login': typeof LoginRoute
   '/marketing': typeof MarketingRoute
+  '/register': typeof RegisterRoute
   '/sales': typeof SalesRoute
   '/settings': typeof SettingsRoute
 }
@@ -86,7 +102,9 @@ export interface FileRoutesById {
   '/analytics': typeof AnalyticsRoute
   '/finance': typeof FinanceRoute
   '/inventory': typeof InventoryRoute
+  '/login': typeof LoginRoute
   '/marketing': typeof MarketingRoute
+  '/register': typeof RegisterRoute
   '/sales': typeof SalesRoute
   '/settings': typeof SettingsRoute
 }
@@ -98,7 +116,9 @@ export interface FileRouteTypes {
     | '/analytics'
     | '/finance'
     | '/inventory'
+    | '/login'
     | '/marketing'
+    | '/register'
     | '/sales'
     | '/settings'
   fileRoutesByTo: FileRoutesByTo
@@ -108,7 +128,9 @@ export interface FileRouteTypes {
     | '/analytics'
     | '/finance'
     | '/inventory'
+    | '/login'
     | '/marketing'
+    | '/register'
     | '/sales'
     | '/settings'
   id:
@@ -118,7 +140,9 @@ export interface FileRouteTypes {
     | '/analytics'
     | '/finance'
     | '/inventory'
+    | '/login'
     | '/marketing'
+    | '/register'
     | '/sales'
     | '/settings'
   fileRoutesById: FileRoutesById
@@ -129,7 +153,9 @@ export interface RootRouteChildren {
   AnalyticsRoute: typeof AnalyticsRoute
   FinanceRoute: typeof FinanceRoute
   InventoryRoute: typeof InventoryRoute
+  LoginRoute: typeof LoginRoute
   MarketingRoute: typeof MarketingRoute
+  RegisterRoute: typeof RegisterRoute
   SalesRoute: typeof SalesRoute
   SettingsRoute: typeof SettingsRoute
 }
@@ -171,11 +197,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InventoryRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/marketing': {
       id: '/marketing'
       path: '/marketing'
       fullPath: '/marketing'
       preLoaderRoute: typeof MarketingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/register': {
+      id: '/register'
+      path: '/register'
+      fullPath: '/register'
+      preLoaderRoute: typeof RegisterRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sales': {
@@ -201,7 +241,9 @@ const rootRouteChildren: RootRouteChildren = {
   AnalyticsRoute: AnalyticsRoute,
   FinanceRoute: FinanceRoute,
   InventoryRoute: InventoryRoute,
+  LoginRoute: LoginRoute,
   MarketingRoute: MarketingRoute,
+  RegisterRoute: RegisterRoute,
   SalesRoute: SalesRoute,
   SettingsRoute: SettingsRoute,
 }

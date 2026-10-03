@@ -8,6 +8,8 @@ import { Switch } from "@/components/ui/switch";
 import { API_URL } from "@/services/api";
 import { toast } from "sonner";
 
+import { useAuth } from "@/lib/auth-context";
+
 export const Route = createFileRoute("/settings")({
   component: SettingsPage,
   head: () => ({
@@ -26,6 +28,8 @@ export const Route = createFileRoute("/settings")({
 });
 
 function SettingsPage() {
+  const { user } = useAuth();
+
   return (
     <Page
       title="Settings"
@@ -41,15 +45,29 @@ function SettingsPage() {
           <div className="space-y-4">
             <div className="space-y-1.5">
               <Label htmlFor="biz">Business name</Label>
-              <Input id="biz" defaultValue="Balte General Store" />
+              <Input
+                id="biz"
+                key={`biz-${user?.store_name}`}
+                defaultValue={user?.store_name || "Balte General Store"}
+              />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="owner">Owner name</Label>
-              <Input id="owner" defaultValue="Sakshi Balte" />
+              <Input
+                id="owner"
+                key={`owner-${user?.name}`}
+                defaultValue={user?.name || "Sakshi Balte"}
+              />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="email">Contact email</Label>
-              <Input id="email" type="email" placeholder="you@yourbusiness.com" />
+              <Input
+                id="email"
+                type="email"
+                key={`email-${user?.email}`}
+                defaultValue={user?.email || "you@yourbusiness.com"}
+                placeholder="you@yourbusiness.com"
+              />
             </div>
           </div>
         </Section>

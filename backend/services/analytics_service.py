@@ -60,8 +60,9 @@ def _run_aggregation(collection: Collection, pipeline: list) -> list:
         raise
 
 
-def get_sales_trend() -> list[SalesTrendPoint]:
+def get_sales_trend(user_id: str) -> list[SalesTrendPoint]:
     pipeline = [
+        {"$match": {"user_id": user_id}},
         {
             "$group": {
                 "_id": {
@@ -87,8 +88,9 @@ def get_sales_trend() -> list[SalesTrendPoint]:
     ]
 
 
-def get_revenue_trend() -> list[RevenueTrendPoint]:
+def get_revenue_trend(user_id: str) -> list[RevenueTrendPoint]:
     pipeline = [
+        {"$match": {"user_id": user_id}},
         {
             "$group": {
                 "_id": {
@@ -114,8 +116,9 @@ def get_revenue_trend() -> list[RevenueTrendPoint]:
     ]
 
 
-def get_top_products() -> list[TopProduct]:
+def get_top_products(user_id: str) -> list[TopProduct]:
     pipeline = [
+        {"$match": {"user_id": user_id}},
         {
             "$group": {
                 "_id": {
@@ -150,8 +153,9 @@ def get_top_products() -> list[TopProduct]:
     ]
 
 
-def get_category_performance() -> list[CategoryPerformance]:
+def get_category_performance(user_id: str) -> list[CategoryPerformance]:
     pipeline = [
+        {"$match": {"user_id": user_id}},
         {
             "$lookup": {
                 "from": PRODUCTS_COLLECTION,
@@ -190,8 +194,11 @@ def get_category_performance() -> list[CategoryPerformance]:
     ]
 
 
-def get_analytics_summary() -> AnalyticsSummary:
+def get_analytics_summary(user_id: str) -> AnalyticsSummary:
+    collection = _get_sales_collection()
+
     totals_pipeline = [
+        {"$match": {"user_id": user_id}},
         {
             "$group": {
                 "_id": None,
@@ -199,10 +206,11 @@ def get_analytics_summary() -> AnalyticsSummary:
                 "total_profit": {"$sum": "$profit"},
                 "total_sales": {"$sum": 1},
             }
-        }
+        },
     ]
 
     top_product_pipeline = [
+        {"$match": {"user_id": user_id}},
         {
             "$group": {
                 "_id": "$product_name",
@@ -214,6 +222,7 @@ def get_analytics_summary() -> AnalyticsSummary:
     ]
 
     best_category_pipeline = [
+        {"$match": {"user_id": user_id}},
         {
             "$lookup": {
                 "from": PRODUCTS_COLLECTION,
@@ -232,8 +241,6 @@ def get_analytics_summary() -> AnalyticsSummary:
         {"$sort": {"revenue": -1}},
         {"$limit": 1},
     ]
-
-    collection = _get_sales_collection()
 
     totals_results = _run_aggregation(collection, totals_pipeline)
     top_product_results = _run_aggregation(collection, top_product_pipeline)

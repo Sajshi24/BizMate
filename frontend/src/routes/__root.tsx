@@ -4,16 +4,22 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
+  useNavigate,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState, createContext, useContext, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
-import { Sidebar } from "@/components/layout/Sidebar";
+import { Sidebar, BizMateMark } from "@/components/layout/Sidebar";
 import { Toaster } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
+import { AuthProvider, useAuth } from "@/lib/auth-context";
+
+const NavContext = createContext<{ openNav: () => void }>({ openNav: () => {} });
+export const useNav = () => useContext(NavContext);
 
 function NotFoundComponent() {
   return (
@@ -83,15 +89,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { title: "BizMate — Smart Business Assistant" },
       {
         name: "description",
-        content:
-          "Manage your sales, inventory, finances and business insights with BizMate.",
+        content: "Manage your sales, inventory, finances and business insights with BizMate.",
       },
       { property: "og:site_name", content: "BizMate" },
       { property: "og:title", content: "BizMate — Smart Business Assistant" },
       {
         property: "og:description",
-        content:
-          "Manage your sales, inventory, finances and business insights with BizMate.",
+        content: "Manage your sales, inventory, finances and business insights with BizMate.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -127,54 +131,104 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
-function RootComponent() {
-  const { queryClient } = Route.useRouteContext();
+function AppShell() {
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const navigate = useNavigate();
+  const { isAuthenticated, isLoading } = useAuth();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  return (
-    <QueryClientProvider client={queryClient}>
-      <div className="flex min-h-screen bg-background">
-        <div className="sticky top-0 hidden h-screen lg:block">
-          <Sidebar collapsed={collapsed} onToggle={() => setCollapsed((c) => !c)} />
-        </div>
+  const isAuthRoute = pathname === "/login" || pathname === "/register";
 
-        {/* Mobile navigation */}
+  useEffect(() => {
+    if (isLoading) return;
+
+    if (!isAuthenticated && !isAuthRoute) {
+      navigate({
+        to: "/login",
+        search: pathname !== "/" ? { redirect: pathname } : undefined,
+      });
+    } else if (isAuthenticated && isAuthRoute) {
+      navigate({ to: "/" });
+    }
+  }, [isAuthenticated, isLoading, isAuthRoute, pathname, navigate]);
+
+  // Loading state during persistent auth hydration
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center bg-background">
+        <BizMateMark className="size-10 animate-pulse text-lg" />
+        <p className="mt-3 text-xs font-medium tracking-tight text-muted-foreground">
+          Loading BizMate...
+        </p>
+      </div>
+    );
+  }
+
+  // Auth pages (login / register) render dedicated standalone layout
+  if (isAuthRoute) {
+    return (
+      <div className="min-h-screen bg-background text-foreground">
+        <Outlet />
+      </div>
+    );
+  }
+
+  // If unauthenticated on protected route, show nothing while redirecting to /login
+  if (!isAuthenticated) {
+    return null;
+  }
+
+  // Authenticated application dashboard layout
+  return (
+    <div className="flex min-h-screen bg-background">
+      <div className="sticky top-0 hidden h-screen lg:block">
+        <Sidebar collapsed={collapsed} onToggle={() => setCollapsed((c) => !c)} />
+      </div>
+
+      {/* Mobile navigation */}
+      <div
+        className={cn(
+          "fixed inset-0 z-40 lg:hidden",
+          mobileOpen ? "pointer-events-auto" : "pointer-events-none",
+        )}
+      >
+        <div
+          onClick={() => setMobileOpen(false)}
+          className={cn(
+            "absolute inset-0 bg-foreground/40 transition-opacity duration-200",
+            mobileOpen ? "opacity-100" : "opacity-0",
+          )}
+        />
         <div
           className={cn(
-            "fixed inset-0 z-40 lg:hidden",
-            mobileOpen ? "pointer-events-auto" : "pointer-events-none",
+            "absolute inset-y-0 left-0 transition-transform duration-300 ease-out",
+            mobileOpen ? "translate-x-0" : "-translate-x-full",
           )}
+          onClick={() => setMobileOpen(false)}
         >
-          <div
-            onClick={() => setMobileOpen(false)}
-            className={cn(
-              "absolute inset-0 bg-foreground/40 transition-opacity duration-200",
-              mobileOpen ? "opacity-100" : "opacity-0",
-            )}
-          />
-          <div
-            className={cn(
-              "absolute inset-y-0 left-0 transition-transform duration-300 ease-out",
-              mobileOpen ? "translate-x-0" : "-translate-x-full",
-            )}
-            onClick={() => setMobileOpen(false)}
-          >
-            <Sidebar collapsed={false} onToggle={() => setMobileOpen(false)} />
-          </div>
-        </div>
-
-        <div className="flex min-w-0 flex-1 flex-col">
-          <NavContext.Provider value={{ openNav: () => setMobileOpen(true) }}>
-            <Outlet />
-          </NavContext.Provider>
+          <Sidebar collapsed={false} onToggle={() => setMobileOpen(false)} />
         </div>
       </div>
+
+      <div className="flex min-w-0 flex-1 flex-col">
+        <NavContext.Provider value={{ openNav: () => setMobileOpen(true) }}>
+          <Outlet />
+        </NavContext.Provider>
+      </div>
+    </div>
+  );
+}
+
+function RootComponent() {
+  const { queryClient } = Route.useRouteContext();
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <AppShell />
+      </AuthProvider>
       <Toaster position="top-right" />
     </QueryClientProvider>
   );
 }
-
-import { createContext, useContext } from "react";
-const NavContext = createContext<{ openNav: () => void }>({ openNav: () => {} });
-export const useNav = () => useContext(NavContext);

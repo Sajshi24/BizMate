@@ -1,9 +1,11 @@
 import logging
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field
 from pymongo.errors import PyMongoError
 
+from backend.models.user_model import UserResponse
+from backend.routes.deps import get_current_user
 from backend.services import analytics_service
 
 logger = logging.getLogger(__name__)
@@ -45,11 +47,13 @@ class AnalyticsSummaryResponse(BaseModel):
 @router.get(
     "/sales-trend",
     response_model=list[SalesTrendPointResponse],
-    summary="Get daily sales count trend",
+    summary="Get daily sales count trend for the authenticated user",
 )
-def get_sales_trend() -> list[SalesTrendPointResponse]:
+def get_sales_trend(
+    current_user: UserResponse = Depends(get_current_user),
+) -> list[SalesTrendPointResponse]:
     try:
-        trend = analytics_service.get_sales_trend()
+        trend = analytics_service.get_sales_trend(current_user.user_id)
         return [
             SalesTrendPointResponse(date=point.date, sales_count=point.sales_count)
             for point in trend
@@ -65,11 +69,13 @@ def get_sales_trend() -> list[SalesTrendPointResponse]:
 @router.get(
     "/revenue-trend",
     response_model=list[RevenueTrendPointResponse],
-    summary="Get daily revenue trend",
+    summary="Get daily revenue trend for the authenticated user",
 )
-def get_revenue_trend() -> list[RevenueTrendPointResponse]:
+def get_revenue_trend(
+    current_user: UserResponse = Depends(get_current_user),
+) -> list[RevenueTrendPointResponse]:
     try:
-        trend = analytics_service.get_revenue_trend()
+        trend = analytics_service.get_revenue_trend(current_user.user_id)
         return [
             RevenueTrendPointResponse(date=point.date, revenue=point.revenue)
             for point in trend
@@ -85,11 +91,13 @@ def get_revenue_trend() -> list[RevenueTrendPointResponse]:
 @router.get(
     "/top-products",
     response_model=list[TopProductResponse],
-    summary="Get products ranked by quantity sold",
+    summary="Get products ranked by quantity sold for the authenticated user",
 )
-def get_top_products() -> list[TopProductResponse]:
+def get_top_products(
+    current_user: UserResponse = Depends(get_current_user),
+) -> list[TopProductResponse]:
     try:
-        products = analytics_service.get_top_products()
+        products = analytics_service.get_top_products(current_user.user_id)
         return [
             TopProductResponse(
                 product_id=product.product_id,
@@ -110,11 +118,13 @@ def get_top_products() -> list[TopProductResponse]:
 @router.get(
     "/category-performance",
     response_model=list[CategoryPerformanceResponse],
-    summary="Get revenue grouped by category",
+    summary="Get revenue grouped by category for the authenticated user",
 )
-def get_category_performance() -> list[CategoryPerformanceResponse]:
+def get_category_performance(
+    current_user: UserResponse = Depends(get_current_user),
+) -> list[CategoryPerformanceResponse]:
     try:
-        categories = analytics_service.get_category_performance()
+        categories = analytics_service.get_category_performance(current_user.user_id)
         return [
             CategoryPerformanceResponse(
                 category=row.category,
@@ -134,11 +144,13 @@ def get_category_performance() -> list[CategoryPerformanceResponse]:
 @router.get(
     "/summary",
     response_model=AnalyticsSummaryResponse,
-    summary="Get analytics summary",
+    summary="Get analytics summary for the authenticated user",
 )
-def get_analytics_summary() -> AnalyticsSummaryResponse:
+def get_analytics_summary(
+    current_user: UserResponse = Depends(get_current_user),
+) -> AnalyticsSummaryResponse:
     try:
-        summary = analytics_service.get_analytics_summary()
+        summary = analytics_service.get_analytics_summary(current_user.user_id)
         return AnalyticsSummaryResponse(
             total_revenue=summary.total_revenue,
             total_profit=summary.total_profit,

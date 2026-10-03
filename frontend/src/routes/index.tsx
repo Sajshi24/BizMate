@@ -22,6 +22,8 @@ import { useProducts } from "@/hooks/useProducts";
 import { revenueTrend } from "@/services/sample-data";
 import { formatMoney, stockStatus } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/lib/auth-context";
+
 
 export const Route = createFileRoute("/")({
   component: Dashboard,
@@ -52,8 +54,12 @@ const ranges = [
 
 function Dashboard() {
   const { data, isLoading } = useProducts();
+  const { user } = useAuth();
   const [range, setRange] = useState<(typeof ranges)[number]["key"]>("7d");
   const products = data?.products ?? [];
+
+  const firstName = user?.name?.split(" ")[0] ?? "there";
+
 
   const series = revenueTrend[range];
   const revenue = series.reduce((s, p) => s + p.revenue, 0);
@@ -76,7 +82,7 @@ function Dashboard() {
       <div className="panel mb-6 flex flex-wrap items-center justify-between gap-4 p-6">
         <div>
           <h2 className="text-[20px] font-semibold tracking-tight text-foreground">
-            Good morning, Sakshi
+            Good morning, {firstName}
           </h2>
           <p className="mt-1 max-w-2xl text-[13.5px] text-muted-foreground">
             Your sales are performing well this week

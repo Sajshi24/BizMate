@@ -42,51 +42,51 @@ def _calculate_reorder_quantity(stock: int, minimum_stock: int) -> int:
     return max((minimum_stock * 2) - stock, minimum_stock)
 
 
-def get_inventory() -> list[ProductResponse]:
+def get_inventory(user_id: str) -> list[ProductResponse]:
     try:
-        documents = list(_get_collection().find({}, {"_id": 0}))
+        documents = list(_get_collection().find({"user_id": user_id}, {"_id": 0}))
     except PyMongoError as exc:
-        logger.error("Failed to fetch inventory: %s", exc)
+        logger.error("Failed to fetch inventory for user %s: %s", user_id, exc)
         raise
 
     return _documents_to_products(documents)
 
 
-def get_low_stock_products() -> list[ProductResponse]:
+def get_low_stock_products(user_id: str) -> list[ProductResponse]:
     try:
         documents = list(
             _get_collection().find(
-                {"$expr": {"$lte": ["$stock", "$minimum_stock"]}},
+                {"user_id": user_id, "$expr": {"$lte": ["$stock", "$minimum_stock"]}},
                 {"_id": 0},
             )
         )
     except PyMongoError as exc:
-        logger.error("Failed to fetch low-stock products: %s", exc)
+        logger.error("Failed to fetch low-stock products for user %s: %s", user_id, exc)
         raise
 
     return _documents_to_products(documents)
 
 
-def get_out_of_stock_products() -> list[ProductResponse]:
+def get_out_of_stock_products(user_id: str) -> list[ProductResponse]:
     try:
-        documents = list(_get_collection().find({"stock": 0}, {"_id": 0}))
+        documents = list(_get_collection().find({"user_id": user_id, "stock": 0}, {"_id": 0}))
     except PyMongoError as exc:
-        logger.error("Failed to fetch out-of-stock products: %s", exc)
+        logger.error("Failed to fetch out-of-stock products for user %s: %s", user_id, exc)
         raise
 
     return _documents_to_products(documents)
 
 
-def get_restock_suggestions() -> list[RestockSuggestion]:
+def get_restock_suggestions(user_id: str) -> list[RestockSuggestion]:
     try:
         documents = list(
             _get_collection().find(
-                {"$expr": {"$lte": ["$stock", "$minimum_stock"]}},
+                {"user_id": user_id, "$expr": {"$lte": ["$stock", "$minimum_stock"]}},
                 {"_id": 0, "name": 1, "stock": 1, "minimum_stock": 1},
             )
         )
     except PyMongoError as exc:
-        logger.error("Failed to fetch restock suggestions: %s", exc)
+        logger.error("Failed to fetch restock suggestions for user %s: %s", user_id, exc)
         raise
 
     return [
@@ -103,8 +103,9 @@ def get_restock_suggestions() -> list[RestockSuggestion]:
     ]
 
 
-def get_inventory_health() -> InventoryHealth:
+def get_inventory_health(user_id: str) -> InventoryHealth:
     pipeline = [
+        {"$match": {"user_id": user_id}},
         {
             "$group": {
                 "_id": None,
@@ -132,13 +133,13 @@ def get_inventory_health() -> InventoryHealth:
                     }
                 },
             }
-        }
+        },
     ]
 
     try:
         results = list(_get_collection().aggregate(pipeline))
     except PyMongoError as exc:
-        logger.error("Failed to calculate inventory health: %s", exc)
+        logger.error("Failed to calculate inventory health for user %s: %s", user_id, exc)
         raise
 
     if not results:

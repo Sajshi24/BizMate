@@ -9,11 +9,13 @@ from pymongo.errors import PyMongoError
 from backend.config.database import close_database, get_client, get_database
 from backend.routes.advisor import router as advisor_router
 from backend.routes.analytics import router as analytics_router
+from backend.routes.auth import router as auth_router
 from backend.routes.finance import router as finance_router
 from backend.routes.inventory import router as inventory_router
 from backend.routes.marketing import router as marketing_router
 from backend.routes.products import router as products_router
 from backend.routes.sales import router as sales_router
+from backend.services.auth_service import ensure_user_indexes
 
 logging.basicConfig(
     level=logging.INFO,
@@ -31,6 +33,7 @@ async def lifespan(app: FastAPI):
     """Initialize shared resources on startup and release them on shutdown."""
     try:
         get_database()
+        ensure_user_indexes()
         logger.info("Application startup complete")
     except PyMongoError as exc:
         logger.warning("Application started without MongoDB: %s", exc)
@@ -50,12 +53,21 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://localhost:8080",
+        "http://127.0.0.1:8080",
+    ],
+    allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+app.include_router(auth_router)
 app.include_router(products_router)
 app.include_router(sales_router)
 app.include_router(inventory_router)

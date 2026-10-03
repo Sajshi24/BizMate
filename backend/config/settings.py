@@ -13,3 +13,11 @@ OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "")
 STABILITY_API_KEY: str = os.getenv("STABILITY_API_KEY", "")
 
 POSTER_STORAGE_DIR: Path = BASE_DIR / "storage" / "posters"
+
+# Authentication settings
+JWT_SECRET_KEY: str = os.getenv(
+    "JWT_SECRET_KEY",
+    "bizmate-super-secure-jwt-secret-key-production-grade-2026-auth",
+)
+JWT_ALGORITHM: str = os.getenv("JWT_ALGORITHM", "HS256")
+JWT_ACCESS_TOKEN_EXPIRE_DAYS: int = int(os.getenv("JWT_ACCESS_TOKEN_EXPIRE_DAYS", "7"))

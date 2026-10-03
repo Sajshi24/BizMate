@@ -1,4 +1,4 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard,
   ShoppingCart,
@@ -10,8 +10,11 @@ import {
   Settings,
   PanelLeftClose,
   PanelLeftOpen,
+  LogOut,
 } from "lucide-react";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/lib/auth-context";
 
 export const navItems = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -37,14 +40,23 @@ export function BizMateMark({ className }: { className?: string }) {
   );
 }
 
-export function Sidebar({
-  collapsed,
-  onToggle,
-}: {
-  collapsed: boolean;
-  onToggle: () => void;
-}) {
+function getInitials(name?: string): string {
+  if (!name) return "BM";
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+export function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle: () => void }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
+
+  const handleLogout = () => {
+    logout();
+    toast.success("Signed out successfully");
+    navigate({ to: "/login" });
+  };
 
   return (
     <aside
@@ -102,16 +114,27 @@ export function Sidebar({
         </Link>
 
         <div className="flex items-center gap-3 rounded-lg px-3 py-2">
-          <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-sidebar-accent text-[12px] font-semibold">
-            SB
+          <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-sidebar-accent text-[12px] font-semibold text-sidebar-foreground">
+            {getInitials(user?.name)}
           </span>
           {!collapsed && (
-            <div className="min-w-0">
-              <p className="truncate text-[13px] font-medium">Sakshi Balte</p>
-              <p className="truncate text-[11px] text-sidebar-muted">Balte General Store</p>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-[13px] font-medium">{user?.name || "Retail Partner"}</p>
+              <p className="truncate text-[11px] text-sidebar-muted">
+                {user?.store_name || "BizMate Store"}
+              </p>
             </div>
           )}
         </div>
+
+        <button
+          onClick={handleLogout}
+          title={collapsed ? "Log out" : undefined}
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-[13px] font-medium text-sidebar-muted transition-colors hover:bg-destructive/20 hover:text-destructive"
+        >
+          <LogOut className="size-[18px] shrink-0" strokeWidth={1.8} />
+          {!collapsed && <span>Log out</span>}
+        </button>
 
         <button
           onClick={onToggle}

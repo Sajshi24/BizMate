@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -19,5 +20,6 @@ class SaleResponse(BaseModel):
     cost: float = Field(..., ge=0)
     profit: float
     sale_date: datetime
+    user_id: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)

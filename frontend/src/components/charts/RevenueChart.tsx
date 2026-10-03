@@ -11,25 +11,42 @@ import {
 import type { TrendPoint } from "@/types";
 import { formatCompact, formatMoney } from "@/lib/format";
 
-function ChartTooltip({ active, payload, label }: any) {
+interface TooltipEntry {
+  dataKey?: string | number;
+  value?: number;
+}
+
+interface ChartTooltipProps {
+  active?: boolean;
+  payload?: TooltipEntry[];
+  label?: string;
+}
+
+function ChartTooltip({ active, payload, label }: ChartTooltipProps) {
   if (!active || !payload?.length) return null;
   return (
     <div className="rounded-lg border border-border bg-popover px-3 py-2 shadow-[var(--shadow-raised)]">
       <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
         {label}
       </p>
-      {payload.map((entry: any) => (
+      {payload.map((entry) => (
         <p key={entry.dataKey} className="num mt-1 text-[13px] font-medium text-foreground">
           {entry.dataKey === "revenue"
-            ? formatMoney(entry.value)
-            : `${entry.value} sales`}
+            ? formatMoney(entry.value ?? 0)
+            : `${entry.value ?? 0} sales`}
         </p>
       ))}
     </div>
   );
 }
 
-export function RevenueChart({ data, showSales = true }: { data: TrendPoint[]; showSales?: boolean }) {
+export function RevenueChart({
+  data,
+  showSales = true,
+}: {
+  data: TrendPoint[];
+  showSales?: boolean;
+}) {
   return (
     <div className="h-[280px] w-full">
       <ResponsiveContainer width="100%" height="100%">
