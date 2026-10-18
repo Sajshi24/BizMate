@@ -134,6 +134,7 @@ function RootShell({ children }: { children: ReactNode }) {
 function AppShell() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const navigate = useNavigate();
+  const router = useRouter();
   const { isAuthenticated, isLoading } = useAuth();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -149,9 +150,11 @@ function AppShell() {
         search: pathname !== "/" ? { redirect: pathname } : undefined,
       });
     } else if (isAuthenticated && isAuthRoute) {
-      navigate({ to: "/" });
+      router.invalidate().then(() => {
+        navigate({ to: "/" });
+      });
     }
-  }, [isAuthenticated, isLoading, isAuthRoute, pathname, navigate]);
+  }, [isAuthenticated, isLoading, isAuthRoute, pathname, navigate, router]);
 
   // Loading state during persistent auth hydration
   if (isLoading) {
@@ -167,6 +170,16 @@ function AppShell() {
 
   // Auth pages (login / register) render dedicated standalone layout
   if (isAuthRoute) {
+    if (isAuthenticated) {
+      return (
+        <div className="flex min-h-screen flex-col items-center justify-center bg-background">
+          <BizMateMark className="size-10 animate-pulse text-lg" />
+          <p className="mt-3 text-xs font-medium tracking-tight text-muted-foreground">
+            Redirecting to dashboard...
+          </p>
+        </div>
+      );
+    }
     return (
       <div className="min-h-screen bg-background text-foreground">
         <Outlet />

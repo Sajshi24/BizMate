@@ -36,12 +36,23 @@ class CategoryPerformanceResponse(BaseModel):
     sales_count: int = Field(..., ge=0)
 
 
+class TrendPointResponse(BaseModel):
+    label: str
+    date: str
+    revenue: float = Field(..., ge=0)
+    sales: int = Field(..., ge=0)
+    cost: float = Field(..., ge=0)
+    profit: float
+
+
 class AnalyticsSummaryResponse(BaseModel):
     total_revenue: float = Field(..., ge=0)
     total_profit: float
     total_sales: int = Field(..., ge=0)
     top_product: str | None = None
     best_category: str | None = None
+    average_order_value: float = Field(0.0, ge=0)
+    repeat_customers_pct: float = Field(0.0, ge=0)
 
 
 @router.get(
@@ -157,9 +168,41 @@ def get_analytics_summary(
             total_sales=summary.total_sales,
             top_product=summary.top_product,
             best_category=summary.best_category,
+            average_order_value=summary.average_order_value,
+            repeat_customers_pct=summary.repeat_customers_pct,
         )
     except PyMongoError as exc:
         logger.error("Database error while fetching analytics summary: %s", exc)
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Database is unavailable. Please try again later.",
+        ) from exc
+
+
+@router.get(
+    "/trend",
+    response_model=list[TrendPointResponse],
+    summary="Get multi-metric trend (7d, 30d, 12m) for authenticated user",
+)
+def get_trend(
+    range: str = "7d",
+    current_user: UserResponse = Depends(get_current_user),
+) -> list[TrendPointResponse]:
+    try:
+        trend = analytics_service.get_trend(current_user.user_id, range_type=range)
+        return [
+            TrendPointResponse(
+                label=p.label,
+                date=p.date,
+                revenue=p.revenue,
+                sales=p.sales,
+                cost=p.cost,
+                profit=p.profit,
+            )
+            for p in trend
+        ]
+    except PyMongoError as exc:
+        logger.error("Database error while fetching trend: %s", exc)
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Database is unavailable. Please try again later.",

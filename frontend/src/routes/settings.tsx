@@ -48,7 +48,8 @@ function SettingsPage() {
               <Input
                 id="biz"
                 key={`biz-${user?.store_name}`}
-                defaultValue={user?.store_name || "Balte General Store"}
+                defaultValue={user?.store_name || "My Business"}
+                placeholder="Store Name"
               />
             </div>
             <div className="space-y-1.5">
@@ -56,7 +57,8 @@ function SettingsPage() {
               <Input
                 id="owner"
                 key={`owner-${user?.name}`}
-                defaultValue={user?.name || "Sakshi Balte"}
+                defaultValue={user?.name || "Business Owner"}
+                placeholder="Owner Name"
               />
             </div>
             <div className="space-y-1.5">
@@ -65,7 +67,7 @@ function SettingsPage() {
                 id="email"
                 type="email"
                 key={`email-${user?.email}`}
-                defaultValue={user?.email || "you@yourbusiness.com"}
+                defaultValue={user?.email || ""}
                 placeholder="you@yourbusiness.com"
               />
             </div>

@@ -87,7 +87,9 @@ function SalesPage() {
       setDone({ total, items: lines.reduce((s, l) => s + l.qty, 0) });
       setLines([]);
       setDiscount(0);
-      toast.success("Sale recorded", { description: `${formatMoney(total)} added to today's takings.` });
+      toast.success("Sale recorded", {
+        description: `${formatMoney(total)} added to today's takings.`,
+      });
     } catch {
       toast.error("We couldn't record that sale", { description: "Please try again in a moment." });
     } finally {
@@ -138,7 +140,10 @@ function SalesPage() {
               ))}
             </div>
           ) : visible.length === 0 ? (
-            <EmptyState title="No products found" description="Try a different search or category." />
+            <EmptyState
+              title="No products found"
+              description="Try a different search or category."
+            />
           ) : (
             <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
               {visible.map((p) => {
@@ -156,7 +161,9 @@ function SalesPage() {
                         : "hover:border-primary/30 hover:shadow-[var(--shadow-raised)]",
                     )}
                   >
-                    <p className="line-clamp-2 text-[13.5px] font-medium text-foreground">{p.name}</p>
+                    <p className="line-clamp-2 text-[13.5px] font-medium text-foreground">
+                      {p.name}
+                    </p>
                     <p className="mt-0.5 text-[12px] text-muted-foreground">{p.category}</p>
                     <div className="mt-3 flex items-center justify-between">
                       <span className="num text-[14px] font-semibold text-foreground">
@@ -183,7 +190,11 @@ function SalesPage() {
         </Section>
 
         <div className="lg:sticky lg:top-24 lg:self-start">
-          <Section title="Current sale" description={`${lines.length} item${lines.length === 1 ? "" : "s"}`} bodyClassName="p-4">
+          <Section
+            title="Current sale"
+            description={`${lines.length} item${lines.length === 1 ? "" : "s"}`}
+            bodyClassName="p-4"
+          >
             {done ? (
               <div className="flex flex-col items-center py-8 text-center">
                 <CheckCircle2 className="size-9 text-success" strokeWidth={1.6} />
@@ -205,10 +216,7 @@ function SalesPage() {
               <>
                 <div className="space-y-2">
                   {lines.map((l) => (
-                    <div
-                      key={l.product.product_id}
-                      className="rounded-lg border border-border p-3"
-                    >
+                    <div key={l.product.product_id} className="rounded-lg border border-border p-3">
                       <div className="flex items-start justify-between gap-2">
                         <p className="text-[13px] font-medium text-foreground">{l.product.name}</p>
                         <button
@@ -228,7 +236,9 @@ function SalesPage() {
                           >
                             <Minus className="size-3.5" />
                           </button>
-                          <span className="num w-6 text-center text-[13px] font-medium">{l.qty}</span>
+                          <span className="num w-6 text-center text-[13px] font-medium">
+                            {l.qty}
+                          </span>
                           <button
                             onClick={() => setQty(l.product.product_id, 1)}
                             className="p-1.5 text-muted-foreground hover:text-foreground"

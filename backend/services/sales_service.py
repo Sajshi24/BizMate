@@ -110,9 +110,12 @@ def create_sale(payload: SaleCreate, user_id: str) -> SaleResponse:
     return SaleResponse(**document)
 
 
-def get_all_sales(user_id: str) -> list[SaleResponse]:
+def get_all_sales(user_id: str, limit: int | None = None) -> list[SaleResponse]:
     try:
-        documents = list(_get_sales_collection().find({"user_id": user_id}, {"_id": 0}))
+        cursor = _get_sales_collection().find({"user_id": user_id}, {"_id": 0}).sort("sale_date", -1)
+        if limit is not None and limit > 0:
+            cursor = cursor.limit(limit)
+        documents = list(cursor)
     except PyMongoError as exc:
         logger.error("Failed to fetch sales for user %s: %s", user_id, exc)
         raise

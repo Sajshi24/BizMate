@@ -120,7 +120,7 @@ async def import_products_csv(
             detail="The CSV file has no header row.",
         )
 
-    actual_columns = {col.strip().lower() for col in reader.fieldnames}
+    actual_columns = {col.strip().lower() for col in reader.fieldnames if col}
     missing_columns = _REQUIRED_CSV_COLUMNS - actual_columns
     if missing_columns:
         raise HTTPException(
@@ -139,7 +139,7 @@ async def import_products_csv(
     errors: list[str] = []
 
     for i, raw_row in enumerate(rows, start=2):  # Row 1 is header
-        row = {k.strip().lower(): (v.strip() if v else "") for k, v in raw_row.items()}
+        row = {(k.strip().lower() if k else ""): (v.strip() if v else "") for k, v in raw_row.items()}
 
         name = row.get("name", "").strip()
         category = row.get("category", "").strip()

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate, useRouter } from "@tanstack/react-router";
 import {
   AlertCircle,
   Eye,
@@ -39,6 +39,7 @@ export const Route = createFileRoute("/register")({
 function RegisterPage() {
   const { redirect } = Route.useSearch();
   const navigate = useNavigate();
+  const router = useRouter();
   const { register, isAuthenticated, isLoading: isAuthLoading } = useAuth();
 
   const [name, setName] = useState("");
@@ -62,9 +63,11 @@ function RegisterPage() {
   // If already authenticated, redirect
   useEffect(() => {
     if (!isAuthLoading && isAuthenticated) {
-      navigate({ to: redirect || "/" });
+      router.invalidate().then(() => {
+        navigate({ to: redirect || "/" });
+      });
     }
-  }, [isAuthenticated, isAuthLoading, navigate, redirect]);
+  }, [isAuthenticated, isAuthLoading, navigate, redirect, router]);
 
   const validate = (): boolean => {
     const errors: typeof fieldErrors = {};
@@ -113,6 +116,7 @@ function RegisterPage() {
       });
 
       toast.success(`Account created! Welcome to BizMate, ${newUser.name}.`);
+      await router.invalidate();
       navigate({ to: redirect || "/" });
     } catch (err: unknown) {
       if (err instanceof Error) {

@@ -31,3 +31,17 @@ def get_current_user(
             detail=str(exc),
             headers={"WWW-Authenticate": "Bearer"},
         ) from exc
+
+
+def get_optional_current_user(
+    auth_header: Optional[HTTPAuthorizationCredentials] = Security(security_scheme),
+) -> Optional[UserResponse]:
+    """Dependency that returns the authenticated user if a valid Bearer token is provided, or None."""
+    if not auth_header or not auth_header.credentials:
+        return None
+
+    try:
+        return auth_service.get_current_user_from_token(auth_header.credentials)
+    except auth_service.InvalidTokenError:
+        return None
+

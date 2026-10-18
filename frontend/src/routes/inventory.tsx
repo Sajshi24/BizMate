@@ -249,7 +249,13 @@ function InventoryPage() {
               <Upload className="size-4" />
               Upload CSV
             </Button>
-            <PrimaryAction onClick={() => toast("Add product", { description: "Product intake opens once your catalogue service is connected." })}>
+            <PrimaryAction
+              onClick={() =>
+                toast("Add product", {
+                  description: "Product intake opens once your catalogue service is connected.",
+                })
+              }
+            >
               Add Product
             </PrimaryAction>
           </div>
@@ -395,7 +401,9 @@ function InventoryPage() {
                           Min. {p.minimum_stock} units
                         </p>
                       </td>
-                      <td className="px-5 py-3.5 text-[13px] text-muted-foreground">{p.category}</td>
+                      <td className="px-5 py-3.5 text-[13px] text-muted-foreground">
+                        {p.category}
+                      </td>
                       <td className="num px-5 py-3.5 text-right text-[13px] text-muted-foreground">
                         {formatMoney(p.cost_price)}
                       </td>
@@ -405,13 +413,19 @@ function InventoryPage() {
                       <td className="num px-5 py-3.5 text-right text-[13px] text-foreground">
                         {p.stock}
                       </td>
-                      <td className="px-5 py-3.5 text-[13px] text-muted-foreground">{p.supplier}</td>
+                      <td className="px-5 py-3.5 text-[13px] text-muted-foreground">
+                        {p.supplier}
+                      </td>
                       <td className="px-5 py-3.5">
                         <StatusBadge status={stockStatus(p)} />
                       </td>
                       <td className="px-5 py-3.5 text-right">
                         <button
-                          onClick={() => toast(p.name, { description: "Product editing arrives with the next release." })}
+                          onClick={() =>
+                            toast(p.name, {
+                              description: "Product editing arrives with the next release.",
+                            })
+                          }
                           className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                           aria-label={`Actions for ${p.name}`}
                         >

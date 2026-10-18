@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate, useRouter } from "@tanstack/react-router";
 import { AlertCircle, Eye, EyeOff, Loader2, Lock, Mail, ShieldCheck } from "lucide-react";
 import { z } from "zod";
 import { toast } from "sonner";
@@ -30,6 +30,7 @@ export const Route = createFileRoute("/login")({
 function LoginPage() {
   const { redirect } = Route.useSearch();
   const navigate = useNavigate();
+  const router = useRouter();
   const { login, isAuthenticated, isLoading: isAuthLoading } = useAuth();
 
   const [email, setEmail] = useState("");
@@ -42,9 +43,11 @@ function LoginPage() {
   // If already authenticated, redirect to dashboard or redirect target
   useEffect(() => {
     if (!isAuthLoading && isAuthenticated) {
-      navigate({ to: redirect || "/" });
+      router.invalidate().then(() => {
+        navigate({ to: redirect || "/" });
+      });
     }
-  }, [isAuthenticated, isAuthLoading, navigate, redirect]);
+  }, [isAuthenticated, isAuthLoading, navigate, redirect, router]);
 
   const validate = (): boolean => {
     const errors: { email?: string; password?: string } = {};
@@ -69,6 +72,7 @@ function LoginPage() {
     try {
       const loggedUser = await login({ email: email.trim(), password });
       toast.success(`Welcome back, ${loggedUser.name}!`);
+      await router.invalidate();
       navigate({ to: redirect || "/" });
     } catch (err: unknown) {
       if (err instanceof Error) {

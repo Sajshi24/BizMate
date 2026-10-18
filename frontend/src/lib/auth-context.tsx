@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import type { LoginCredentials, RegisterData, User } from "@/types";
 import {
   clearStoredAuth,
@@ -25,6 +26,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const queryClient = useQueryClient();
   const [user, setUser] = useState<User | null>(() => getStoredUser());
   const [token, setToken] = useState<string | null>(() => getStoredToken());
   const [isLoading, setIsLoading] = useState(true);
@@ -47,12 +49,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setUser(freshUser);
             setStoredUser(freshUser);
           }
-        } catch {
-          // If token verification fails (e.g., token expired), reset auth
-          if (isMounted) {
-            clearStoredAuth();
-            setToken(null);
-            setUser(null);
+        } catch (err: unknown) {
+          // Only reset auth if the token is definitively rejected by the backend (401 or 403)
+          // Network errors or backend connection timeouts should preserve the local session
+          const status = (err as { status?: number })?.status;
+          if (status === 401 || status === 403) {
+            if (isMounted) {
+              clearStoredAuth();
+              setToken(null);
+              setUser(null);
+            }
           }
         }
       } else {
@@ -75,6 +81,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const login = async (credentials: LoginCredentials): Promise<User> => {
+    queryClient.clear();
     const response = await loginApi(credentials);
     setStoredToken(response.access_token);
     setStoredUser(response.user);
@@ -84,6 +91,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const register = async (data: RegisterData): Promise<User> => {
+    queryClient.clear();
     const response = await registerApi(data);
     setStoredToken(response.access_token);
     setStoredUser(response.user);
@@ -93,6 +101,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const logout = () => {
+    queryClient.clear();
     logoutApi();
     clearStoredAuth();
     setToken(null);

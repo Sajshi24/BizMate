@@ -49,10 +49,11 @@ def create_sale(
     summary="List all sales for the authenticated user",
 )
 def list_sales(
+    limit: int | None = None,
     current_user: UserResponse = Depends(get_current_user),
 ) -> list[SaleResponse]:
     try:
-        return sales_service.get_all_sales(current_user.user_id)
+        return sales_service.get_all_sales(current_user.user_id, limit=limit)
     except PyMongoError as exc:
         logger.error("Database error while listing sales: %s", exc)
         raise HTTPException(

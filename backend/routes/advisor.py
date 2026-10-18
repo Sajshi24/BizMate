@@ -1,10 +1,12 @@
 import logging
 from typing import Any
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 from pymongo.errors import PyMongoError
 
+from backend.models.user_model import UserResponse
+from backend.routes.deps import get_current_user
 from backend.services import analytics_service, finance_service, gemini_service, inventory_service
 
 logger = logging.getLogger(__name__)
@@ -21,11 +23,13 @@ class AdviceResponse(BaseModel):
     response_model=AdviceResponse,
     summary="Get AI-powered business advice from live data",
 )
-def get_business_advice() -> AdviceResponse:
+def get_business_advice(
+    current_user: UserResponse = Depends(get_current_user),
+) -> AdviceResponse:
     try:
-        finance = finance_service.get_finance_summary()
-        analytics = analytics_service.get_analytics_summary()
-        inventory = inventory_service.get_inventory_health()
+        finance = finance_service.get_finance_summary(current_user.user_id)
+        analytics = analytics_service.get_analytics_summary(current_user.user_id)
+        inventory = inventory_service.get_inventory_health(current_user.user_id)
     except PyMongoError as exc:
         logger.error("Database error while collecting business context: %s", exc)
         raise HTTPException(

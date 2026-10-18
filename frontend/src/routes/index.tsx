@@ -19,11 +19,11 @@ import { RevenueChart } from "@/components/charts/RevenueChart";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { useProducts } from "@/hooks/useProducts";
-import { revenueTrend } from "@/services/sample-data";
+import { useAnalyticsTrend } from "@/hooks/useAnalytics";
+import { useFinanceSummary } from "@/hooks/useFinance";
 import { formatMoney, stockStatus } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth-context";
-
 
 export const Route = createFileRoute("/")({
   component: Dashboard,
@@ -57,11 +57,12 @@ function Dashboard() {
   const { user } = useAuth();
   const [range, setRange] = useState<(typeof ranges)[number]["key"]>("7d");
   const products = data?.products ?? [];
+  const { data: trendData = [], isLoading: isTrendLoading } = useAnalyticsTrend(range);
+  const { data: financeSummary } = useFinanceSummary();
 
   const firstName = user?.name?.split(" ")[0] ?? "there";
 
-
-  const series = revenueTrend[range];
+  const series = trendData;
   const revenue = series.reduce((s, p) => s + p.revenue, 0);
   const sales = series.reduce((s, p) => s + p.sales, 0);
   const inStock = products.reduce((s, p) => s + p.stock, 0);
@@ -85,17 +86,28 @@ function Dashboard() {
             Good morning, {firstName}
           </h2>
           <p className="mt-1 max-w-2xl text-[13.5px] text-muted-foreground">
-            Your sales are performing well this week
-            {needsAttention.length > 0 ? (
+            {sales > 0 ? (
               <>
-                , but{" "}
-                <span className="font-medium text-foreground">
-                  {needsAttention.length} product{needsAttention.length > 1 ? "s" : ""}
-                </span>{" "}
-                need restocking.
+                Your sales are performing well this period
+                {needsAttention.length > 0 ? (
+                  <>
+                    , but{" "}
+                    <span className="font-medium text-foreground">
+                      {needsAttention.length} product{needsAttention.length > 1 ? "s" : ""}
+                    </span>{" "}
+                    need restocking.
+                  </>
+                ) : (
+                  " and every product is comfortably in stock."
+                )}
+              </>
+            ) : products.length > 0 ? (
+              <>
+                You have {products.length} product{products.length > 1 ? "s" : ""} in your catalog.
+                Record your first sale in Sales to start tracking performance.
               </>
             ) : (
-              " and every product is comfortably in stock."
+              "Welcome to BizMate! Upload your product catalogue or add a product to get started."
             )}
           </p>
         </div>
@@ -109,17 +121,19 @@ function Dashboard() {
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <MetricCard
           label="Total Revenue"
-          value={formatMoney(revenue)}
-          change={12.4}
-          context="vs previous period"
+          value={isTrendLoading ? "—" : formatMoney(revenue)}
+          context={
+            range === "7d" ? "last 7 days" : range === "30d" ? "last 30 days" : "last 12 months"
+          }
           icon={IndianRupee}
+          loading={isTrendLoading}
         />
         <MetricCard
           label="Total Sales"
-          value={sales.toLocaleString()}
-          change={8.1}
+          value={isTrendLoading ? "—" : sales.toLocaleString()}
           context="orders completed"
           icon={ShoppingBag}
+          loading={isTrendLoading}
         />
         <MetricCard
           label="Products in Stock"
@@ -231,10 +245,25 @@ function Dashboard() {
       <Section className="mt-6" title="Quick actions" bodyClassName="p-4">
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           {[
-            { to: "/sales", icon: ShoppingCart, label: "Record a Sale", hint: "Ring up a new order" },
+            {
+              to: "/sales",
+              icon: ShoppingCart,
+              label: "Record a Sale",
+              hint: "Ring up a new order",
+            },
             { to: "/inventory", icon: Plus, label: "Add Product", hint: "Expand your catalogue" },
-            { to: "/marketing", icon: Megaphone, label: "Create Promotion", hint: "Generate campaign copy" },
-            { to: "/advisor", icon: Sparkles, label: "Ask BizMate AI", hint: "Get business advice" },
+            {
+              to: "/marketing",
+              icon: Megaphone,
+              label: "Create Promotion",
+              hint: "Generate campaign copy",
+            },
+            {
+              to: "/advisor",
+              icon: Sparkles,
+              label: "Ask BizMate AI",
+              hint: "Get business advice",
+            },
           ].map((a) => (
             <Link
               key={a.to + a.label}

@@ -3,11 +3,13 @@ import logging
 
 from pathlib import Path
 
-from fastapi import APIRouter, File, Form, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 from pymongo.errors import PyMongoError
 
+from backend.models.user_model import UserResponse
+from backend.routes.deps import get_optional_current_user
 from backend.services import marketing_service
 
 logger = logging.getLogger(__name__)
@@ -440,9 +442,12 @@ def create_hashtags(payload: HashtagRequest) -> HashtagResponse:
     response_model=OffersResponse,
     summary="Generate intelligent promotional offers",
 )
-def create_offers() -> OffersResponse:
+def create_offers(
+    current_user: UserResponse | None = Depends(get_optional_current_user),
+) -> OffersResponse:
     try:
-        result = marketing_service.generate_intelligent_offers()
+        user_id = current_user.user_id if current_user else None
+        result = marketing_service.generate_intelligent_offers(user_id=user_id)
         if not result.success:
             raise HTTPException(
                 status_code=status.HTTP_502_BAD_GATEWAY,
@@ -479,9 +484,12 @@ def create_offers() -> OffersResponse:
     response_model=RecommendationResponse,
     summary="Generate a data-driven marketing recommendation",
 )
-def create_recommendation() -> RecommendationResponse:
+def create_recommendation(
+    current_user: UserResponse | None = Depends(get_optional_current_user),
+) -> RecommendationResponse:
     try:
-        result = marketing_service.generate_marketing_recommendation()
+        user_id = current_user.user_id if current_user else None
+        result = marketing_service.generate_marketing_recommendation(user_id=user_id)
         if not result.success or result.recommendation is None:
             raise HTTPException(
                 status_code=status.HTTP_502_BAD_GATEWAY,
@@ -547,12 +555,17 @@ def create_campaign(payload: CampaignRequest) -> CampaignResponse:
     response_model=CalendarResponse,
     summary="Generate campaign calendar ideas",
 )
-def create_campaign_calendar(payload: CalendarRequest) -> CalendarResponse:
+def create_campaign_calendar(
+    payload: CalendarRequest,
+    current_user: UserResponse | None = Depends(get_optional_current_user),
+) -> CalendarResponse:
     try:
+        user_id = current_user.user_id if current_user else None
         result = marketing_service.generate_campaign_calendar(
             calendar_type=payload.calendar_type,
             shop_name=payload.shop_name,
             focus_product=payload.focus_product,
+            user_id=user_id,
         )
         if not result.success:
             raise HTTPException(

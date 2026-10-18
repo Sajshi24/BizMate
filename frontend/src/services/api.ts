@@ -1,5 +1,18 @@
-import type { AuthResponse, LoginCredentials, Product, RegisterData, User } from "@/types";
-import { sampleProducts } from "@/services/sample-data";
+import type {
+  AnalyticsSummary,
+  AuthResponse,
+  CategoryPerformanceItem,
+  ExpenseItem,
+  FinanceSummary,
+  LoginCredentials,
+  MonthlySummaryItem,
+  Product,
+  RegisterData,
+  SaleRecord,
+  TopProductItem,
+  TrendPoint,
+  User,
+} from "@/types";
 
 export const API_URL =
   (import.meta.env["VITE_API_URL"] as string | undefined) ?? "http://127.0.0.1:8000";
@@ -148,7 +161,9 @@ export async function getCurrentUserApi(token: string): Promise<User> {
 
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
-    throw new Error(data.detail || "Invalid or expired session.");
+    const error = new Error(data.detail || "Invalid or expired session.");
+    (error as Error & { status?: number }).status = res.status;
+    throw error;
   }
   return data as User;
 }
@@ -175,13 +190,13 @@ export interface ProductsResult {
 
 /**
  * Fetches products from the backend API for the authenticated user.
- * Falls back to demo/sample data only if the backend is unreachable (network error).
- * Auth errors (401) propagate rather than silently showing demo data.
+ * Real user data is strictly returned from the database.
+ * No mock or seeded data is ever shown to authenticated users.
  */
 export async function getProducts(): Promise<ProductsResult> {
   const token = getStoredToken();
   if (!token) {
-    // No token: show empty list (not demo data) so we don't leak data
+    // No token: return empty list
     return { products: [], source: "live" };
   }
 
@@ -200,20 +215,15 @@ export async function getProducts(): Promise<ProductsResult> {
         }
         return res.json();
       })(),
+      5000,
     );
-    const products = Array.isArray(data) ? data : ((data as { products?: Product[] }).products ?? []);
+    const products = Array.isArray(data)
+      ? data
+      : ((data as { products?: Product[] }).products ?? []);
     return { products, source: "live" };
   } catch (err) {
-    const message = err instanceof Error ? err.message : "";
-    // Only fall back to demo data for genuine network errors, not auth failures
-    if (
-      message === "Failed to fetch" ||
-      message.includes("NetworkError") ||
-      message === "timeout"
-    ) {
-      return { products: sampleProducts, source: "demo" };
-    }
-    // Re-throw auth/server errors so the caller can handle them
+    // Authenticated users must see their actual database data, never fake demo products
+    console.error("Error fetching products from backend:", err);
     throw err;
   }
 }
@@ -259,6 +269,73 @@ export async function getHealth(): Promise<boolean> {
   } catch {
     return false;
   }
+}
+
+export async function getFinanceSummary(): Promise<FinanceSummary> {
+  const token = getStoredToken();
+  if (!token) {
+    return {
+      total_revenue: 0,
+      total_cost: 0,
+      total_profit: 0,
+      total_sales: 0,
+      profit_margin: 0,
+    };
+  }
+  return request<FinanceSummary>("/finance/summary");
+}
+
+export async function getExpenseBreakdown(): Promise<ExpenseItem[]> {
+  const token = getStoredToken();
+  if (!token) return [];
+  return request<ExpenseItem[]>("/finance/expense-breakdown");
+}
+
+export async function getMonthlySummary(): Promise<MonthlySummaryItem[]> {
+  const token = getStoredToken();
+  if (!token) return [];
+  return request<MonthlySummaryItem[]>("/finance/monthly-summary");
+}
+
+export async function getAnalyticsSummary(): Promise<AnalyticsSummary> {
+  const token = getStoredToken();
+  if (!token) {
+    return {
+      total_revenue: 0,
+      total_profit: 0,
+      total_sales: 0,
+      top_product: null,
+      best_category: null,
+      average_order_value: 0,
+      repeat_customers_pct: 0,
+    };
+  }
+  return request<AnalyticsSummary>("/analytics/summary");
+}
+
+export async function getAnalyticsTrend(range: string = "7d"): Promise<TrendPoint[]> {
+  const token = getStoredToken();
+  if (!token) return [];
+  return request<TrendPoint[]>(`/analytics/trend?range=${encodeURIComponent(range)}`);
+}
+
+export async function getTopProducts(): Promise<TopProductItem[]> {
+  const token = getStoredToken();
+  if (!token) return [];
+  return request<TopProductItem[]>("/analytics/top-products");
+}
+
+export async function getCategoryPerformance(): Promise<CategoryPerformanceItem[]> {
+  const token = getStoredToken();
+  if (!token) return [];
+  return request<CategoryPerformanceItem[]>("/analytics/category-performance");
+}
+
+export async function getSales(limit?: number): Promise<SaleRecord[]> {
+  const token = getStoredToken();
+  if (!token) return [];
+  const query = limit ? `?limit=${limit}` : "";
+  return request<SaleRecord[]>(`/sales${query}`);
 }
 
 /** Placeholders for endpoints that are not available on the API yet. */

@@ -1,4 +1,5 @@
-import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
+import { Link, useNavigate, useRouter, useRouterState } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   LayoutDashboard,
   ShoppingCart,
@@ -50,11 +51,15 @@ function getInitials(name?: string): string {
 export function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle: () => void }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const navigate = useNavigate();
+  const router = useRouter();
+  const queryClient = useQueryClient();
   const { user, logout } = useAuth();
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     logout();
+    queryClient.clear();
     toast.success("Signed out successfully");
+    await router.invalidate();
     navigate({ to: "/login" });
   };
 

@@ -28,7 +28,10 @@ export const Route = createFileRoute("/marketing")({
         content: "Create promotional posts, posters and offers for your products in a few steps.",
       },
       { property: "og:title", content: "Marketing — BizMate" },
-      { property: "og:description", content: "Create campaign content for your products in minutes." },
+      {
+        property: "og:description",
+        content: "Create campaign content for your products in minutes.",
+      },
       { property: "og:url", content: "/marketing" },
     ],
     links: [{ rel: "canonical", href: "/marketing" }],
@@ -151,7 +154,11 @@ function MarketingPage() {
             content && !loading ? (
               <div className="flex gap-1.5">
                 <Button variant="outline" size="sm" onClick={copy}>
-                  {copied ? <Check className="mr-1.5 size-3.5" /> : <Copy className="mr-1.5 size-3.5" />}
+                  {copied ? (
+                    <Check className="mr-1.5 size-3.5" />
+                  ) : (
+                    <Copy className="mr-1.5 size-3.5" />
+                  )}
                   Copy
                 </Button>
                 <Button variant="outline" size="sm" onClick={generate}>

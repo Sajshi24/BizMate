@@ -535,19 +535,22 @@ def delete_poster(poster_id: str) -> str:
     return poster_id
 
 
-def collect_business_context() -> dict[str, Any]:
+def collect_business_context(user_id: str | None = None) -> dict[str, Any]:
     """Aggregate finance, analytics, and inventory data for marketing decisions."""
+    if not user_id:
+        return {}
+
     try:
-        finance = finance_service.get_finance_summary()
-        analytics = analytics_service.get_analytics_summary()
-        inventory_health = inventory_service.get_inventory_health()
-        low_stock = inventory_service.get_low_stock_products()
-        out_of_stock = inventory_service.get_out_of_stock_products()
-        top_products = analytics_service.get_top_products()
-        category_performance = analytics_service.get_category_performance()
-        sales_trend = analytics_service.get_sales_trend()
+        finance = finance_service.get_finance_summary(user_id)
+        analytics = analytics_service.get_analytics_summary(user_id)
+        inventory_health = inventory_service.get_inventory_health(user_id)
+        low_stock = inventory_service.get_low_stock_products(user_id)
+        out_of_stock = inventory_service.get_out_of_stock_products(user_id)
+        top_products = analytics_service.get_top_products(user_id)
+        category_performance = analytics_service.get_category_performance(user_id)
+        sales_trend = analytics_service.get_sales_trend(user_id)
     except PyMongoError as exc:
-        logger.error("Failed to collect business context: %s", exc)
+        logger.error("Failed to collect business context for user %s: %s", user_id, exc)
         raise
 
     return {
@@ -851,10 +854,10 @@ def generate_hashtags(product_name: str, keywords: list[str]) -> HashtagResult:
         return HashtagResult(success=False, hashtags=[], error=str(exc))
 
 
-def generate_intelligent_offers() -> OffersResult:
+def generate_intelligent_offers(user_id: str | None = None) -> OffersResult:
     """Generate data-driven promotional offers using inventory, analytics, and finance."""
     try:
-        context = collect_business_context()
+        context = collect_business_context(user_id)
     except PyMongoError as exc:
         raise MarketingAIError("Unable to load business data for offer generation.") from exc
 
@@ -887,10 +890,10 @@ def generate_intelligent_offers() -> OffersResult:
         return OffersResult(success=False, offers=[], error=str(exc))
 
 
-def generate_marketing_recommendation() -> RecommendationResult:
+def generate_marketing_recommendation(user_id: str | None = None) -> RecommendationResult:
     """Recommend which product to promote based on business intelligence."""
     try:
-        context = collect_business_context()
+        context = collect_business_context(user_id)
     except PyMongoError as exc:
         raise MarketingAIError(
             "Unable to load business data for marketing recommendation."
@@ -978,6 +981,7 @@ def generate_campaign_calendar(
     calendar_type: CalendarType,
     shop_name: str | None = None,
     focus_product: str | None = None,
+    user_id: str | None = None,
 ) -> CalendarResult:
     """Generate campaign ideas for a specific calendar horizon."""
     shop = shop_name.strip() if shop_name else "Local Shop"
@@ -992,7 +996,7 @@ def generate_campaign_calendar(
     }
 
     try:
-        context = collect_business_context()
+        context = collect_business_context(user_id)
     except PyMongoError:
         context = {}
 
